@@ -1,0 +1,12 @@
+[package]
+name = "optlam"
+version = "0.1.0"
+authors = ["Nathan Smyth <nathan.andrew.smyth@gmail.com>"]
+
+[dependencies]
+
+[lib]
+name = "optlam"
+path = "src/rust/lambda.rs"
+test = true
+doc = true
