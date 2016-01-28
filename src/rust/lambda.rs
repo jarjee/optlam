@@ -3,6 +3,64 @@
 //typeable terms.
 
 #[derive(Clone)]
+enum Type {
+    Arrow(Box<Type>, Box<Type>),
+    Unit
+}
+
+impl PartialEq for Type {
+    fn eq(&self, other: &Type) -> bool {
+        match (self, other) {
+            (&Type::Arrow(ref t1, ref t2), &Type::Arrow(ref t3, ref t4)) => t1 == t3 && t2 == t4,
+            (&Type::Unit, &Type::Unit) => true,
+            _ => false
+        }
+    }
+}
+
+#[derive(Clone)]
+enum TypedTerm {
+    Lam(Box<TypedTerm>, Type),
+    App(Box<TypedTerm>, Box<TypedTerm>),
+    Var(i32, Type),
+    Unit
+}
+
+fn type_value (term: TypedTerm) -> Option<Type> {
+    match term {
+        TypedTerm::Lam(t, ty) => {
+            match type_value(*t) {
+                Some(t) => Some(Type::Arrow(Box::new(ty), Box::new(t))),
+                None => None
+            }
+        },
+        TypedTerm::App(t1, t2) => {
+            match (type_value(*t1), type_value(*t2)) {
+                (Some(t), Some(t2)) => {
+                    match (t, t2) {
+                        (Type::Arrow(ty1, ty2), x) => {
+                            if *ty1 == x {
+                                Some(*ty2)
+                            } else {
+                                None
+                            }
+                        },
+                        _ => None
+                    }
+                },
+                _ => None,
+            }
+        },
+        TypedTerm::Var(_, ty) => Some(ty),
+        TypedTerm::Unit => Some(Type::Unit),
+    }
+}
+
+fn type_check (term: TypedTerm) -> bool {
+    type_value(term).is_some()
+}
+
+#[derive(Clone)]
 enum Term {
     Lam(Box<Term>),
     App(Box<Term>, Box<Term>),
